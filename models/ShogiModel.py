@@ -16,15 +16,15 @@ class PieceType(Enum):
 @dataclass
 class Piece:
     pieceType: PieceType
-    stayedTurns: int
+    stayedTurns: int # 0 -> 1 -> ok
     owner: int  # 1 or 2, 0이면 없음
 
 
 @dataclass
 class ShogiPlayer:
-    userId: int
+    userId: int # 회원가입용 전체 user id
     userName: str
-    playerId: int
+    # playerId: int # 게임 세션 내 player1 or 2
     capturedPieces: List[Piece] = field(default_factory=list)
 
 
@@ -62,7 +62,7 @@ class SessionInfo:
     # userId1: ShogiPlayer
     # userId2: ShogiPlayer
     players: Dict[int, ShogiPlayer]
-    board: BoardState = field(default_factory=BoardState)
+    boardState: BoardState = field(default_factory=BoardState)
 
     def __post_init__(self):
         self.board.initialize()
