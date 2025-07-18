@@ -17,7 +17,7 @@ class PieceType(Enum):
 class Piece:
     pieceType: PieceType
     stayedTurns: int # 0 -> 1 -> ok
-    owner: int  # 1 or 2, 0이면 없음
+    owner: int  # 1 or 2 // 0이면 droplist에 있는거
 
 
 @dataclass
