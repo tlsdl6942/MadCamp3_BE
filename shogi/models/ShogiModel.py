@@ -24,7 +24,7 @@ class Piece:
 class ShogiPlayer:
     userId: int # 회원가입용 전체 user id
     userName: str
-    # playerId: int # 게임 세션 내 player1 or 2
+    playerId: int # 게임 세션 내 player1 or 2
     capturedPieces: List[Piece] = field(default_factory=list)
 
 
@@ -59,10 +59,15 @@ class BoardState:
 @dataclass
 class SessionInfo:
     sessionId: int
-    # userId1: ShogiPlayer
-    # userId2: ShogiPlayer
-    players: Dict[int, ShogiPlayer]
+    players: Dict[int, ShogiPlayer]  # playerId → ShogiPlayer
     boardState: BoardState = field(default_factory=BoardState)
+    currPlayerId: int = 1
 
+    # 방/게임 정보 추가
+    is_end: bool = False
+    roomName: str = ""
+    roomPW: str = ""
+    winner: int = None  # 1 or 2
+    
     def __post_init__(self):
         self.board.initialize()
