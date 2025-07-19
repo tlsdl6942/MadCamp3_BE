@@ -42,7 +42,7 @@ def avaiable_moves():
         return jsonify({"result": False, "error": "Invalid player ID"}), 400
 
     try:
-        moves = GetAvailableMoves(player, piece, position, boardState)
+        moves = GetAvailableMoves(player_id, piece, position, boardState)
         return jsonify({"result": True, "moves": moves}), 200
     except Exception as e:
         return jsonify({"result": False, "error": str(e)}), 500
@@ -101,7 +101,7 @@ def available_drop():
         return jsonify({"result": False, "error": "Invalid player ID"}), 400
 
     try:
-        moves = GetAvailableMoves(player, piece, position, boardState)
+        moves = GetAvailableMoves(player_id, piece, position, boardState)
         return jsonify({"result": True, "moves": moves}), 200
 
     except Exception as e:
@@ -128,7 +128,7 @@ def drop():
         return jsonify({"result": False, "error": "Invalid player ID"}), 400
 
     try:
-        UpdateBoard(player, piece, position, boardState, dropState)
+        UpdateBoard(player=player, player_id=player_id, piece=piece, position=position, boardState=boardState, dropState=dropState)
         return jsonify({
             "result": True, 
         }), 200
