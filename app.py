@@ -1,7 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from shogi import shogi_bp
-from shogi.routes.DebugRouter import debug_sessions
 
 
 app = Flask(__name__)
