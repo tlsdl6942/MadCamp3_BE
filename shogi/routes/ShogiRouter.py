@@ -2,7 +2,7 @@ from flask import request, jsonify
 from shogi import shogi_bp
 from shogi.models.ShogiModel import SessionInfo, ShogiPlayer
 from core.session_manager import game_sessions
-from shogi.services.ShogiService import GetAvailableMoves, MovePieces, UpdateBoard
+from shogi.services.ShogiService import GetAvailableMoves, MovePieces, DropPieces
 import itertools
 
 # 세션 ID 자동 증가
@@ -68,10 +68,9 @@ def move():
         return jsonify({"result": False, "error": "Invalid player ID"}), 400
 
     try:
-        res = MovePieces(player, piece, position, boardState)
+        res = MovePieces(player=player, player_id=player_id, piece=piece, position=position, boardState=boardState)
         capture = res.get("capture")  # dict: { is_capture: bool, piece: str|null }
         is_end = res.get("is_end")    # bool
-        UpdateBoard(player, piece, position, boardState, dropState)
         return jsonify({
             "result": True, 
             "capture": capture,
@@ -128,7 +127,7 @@ def drop():
         return jsonify({"result": False, "error": "Invalid player ID"}), 400
 
     try:
-        UpdateBoard(player=player, player_id=player_id, piece=piece, position=position, boardState=boardState, dropState=dropState)
+        DropPieces(player=player, player_id=player_id, piece=piece, position=position, boardState=boardState)
         return jsonify({
             "result": True, 
         }), 200

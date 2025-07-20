@@ -70,4 +70,4 @@ class SessionInfo:
     winner: int = None  # 1 or 2
     
     def __post_init__(self):
-        self.board.initialize()
+        self.boardState.initialize()
