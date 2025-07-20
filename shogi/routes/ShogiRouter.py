@@ -8,11 +8,6 @@ import itertools
 # 세션 ID 자동 증가
 session_id_counter = itertools.count(1)
 
-@shogi_bp.route("/create-session", methods=["POST"])
-def create_session():
-    ##
-    pass
-
 
 @shogi_bp.route("/available-moves", methods=["POST"])
 def avaiable_moves():
