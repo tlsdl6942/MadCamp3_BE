@@ -7,7 +7,6 @@ app = Flask(__name__)
 CORS(app)  # 모든 도메인 허용 (개발용)
 
 app.register_blueprint(shogi_bp)
-app.register_blueprint(debug_sessions)
 
 if __name__ == "__main__":
     app.run(port=5000)
