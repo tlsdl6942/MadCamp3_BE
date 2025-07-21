@@ -29,18 +29,18 @@ def avaiable_moves():
     session = game_sessions.get(session_id)
 
     if not session: # 요청한 세션이 없을 경우(존재하지 않는 게임에서의 요청 방지)
-        return jsonify({"result": False, "error": "Invalid session ID"}), 400 
+        return jsonify({"result": True, "moves": None}), 400 
 
     boardState = session.boardState # 해당 게임의 보드판
     player = session.players.get(player_id) # 요청을 보낸 플레이어 객체
     if not player: # 유효하지 않은 플레이어
-        return jsonify({"result": False, "error": "Invalid player ID"}), 400
+        return jsonify({"result": True, "moves": None}), 400
 
     try:
         moves = GetAvailableMoves(player_id, piece, position, boardState)
         return jsonify({"result": True, "moves": moves}), 200
     except Exception as e:
-        return jsonify({"result": False, "error": str(e)}), 500
+        return jsonify({"result": True, "moves": None}), 500
     
 
 @shogi_bp.route("/move", methods=["POST"])
@@ -54,25 +54,40 @@ def move():
     session = game_sessions.get(session_id)
 
     if not session: # 요청한 세션이 없을 경우(존재하지 않는 게임에서의 요청 방지)
-        return jsonify({"result": False, "error": "Invalid session ID"}), 400 
+        return jsonify({
+            "result": True, 
+            "capture": None,
+            "is_end": session.is_end,
+            "winner": session.winner
+        }), 400 
 
     boardState = session.boardState # 해당 게임의 보드판
     player = session.players.get(player_id) # 요청을 보낸 플레이어 객체
     dropState = player.capturedPieces # 요청을 보낸 플레이어의 dropState
     if not player: # 유효하지 않은 플레이어
-        return jsonify({"result": False, "error": "Invalid player ID"}), 400
+        return jsonify({
+            "result": True, 
+            "capture": None,
+            "is_end": session.is_end,
+            "winner": session.winner
+        }), 400
 
     try:
-        res = MovePieces(player=player, player_id=player_id, piece=piece, position=position, boardState=boardState)
+        res = MovePieces(session=session, player=player, player_id=player_id, piece=piece, position=position, boardState=boardState)
         capture = res.get("capture")  # dict: { is_capture: bool, piece: str|null }
-        is_end = res.get("is_end")    # bool
         return jsonify({
             "result": True, 
             "capture": capture,
-            "is_end": is_end
+            "is_end": session.is_end,
+            "winner": session.winner
         }), 200
     except Exception as e:
-        return jsonify({"result": False, "error": str(e)}), 500
+        return jsonify({
+            "result": True, 
+            "capture": None,
+            "is_end": session.is_end,
+            "winner": session.winner
+        }), 500
     
 
 @shogi_bp.route("/available-drop", methods=["POST"])
@@ -86,20 +101,20 @@ def available_drop():
     session = game_sessions.get(session_id)
 
     if not session: # 요청한 세션이 없을 경우(존재하지 않는 게임에서의 요청 방지)
-        return jsonify({"result": False, "error": "Invalid session ID"}), 400 
+        return jsonify({"result": True, "moves": None}), 400 
 
     boardState = session.boardState # 해당 게임의 보드판
     player = session.players.get(player_id) # 요청을 보낸 플레이어 객체
 
     if not player: # 유효하지 않은 플레이어
-        return jsonify({"result": False, "error": "Invalid player ID"}), 400
+        return jsonify({"result": True, "moves": None}), 400
 
     try:
         moves = GetAvailableMoves(player_id, piece, position, boardState)
         return jsonify({"result": True, "moves": moves}), 200
 
     except Exception as e:
-        return jsonify({"result": False, "error": str(e)}), 500
+        return jsonify({"result": True, "moves": None}), 500
     
 
 @shogi_bp.route("/drop", methods=["POST"])
@@ -113,19 +128,33 @@ def drop():
     session = game_sessions.get(session_id)
 
     if not session: # 요청한 세션이 없을 경우(존재하지 않는 게임에서의 요청 방지)
-        return jsonify({"result": False, "error": "Invalid session ID"}), 400 
+        return jsonify({
+            "result": True, 
+            "is_end": session.is_end,
+            "winner": session.winner
+        }), 400 
 
     boardState = session.boardState # 해당 게임의 보드판
     player = session.players.get(player_id) # 요청을 보낸 플레이어 객체
     dropState = player.capturedPieces # 요청을 보낸 플레이어의 dropState
     if not player: # 유효하지 않은 플레이어
-        return jsonify({"result": False, "error": "Invalid player ID"}), 400
-
-    try:
-        DropPieces(player=player, player_id=player_id, piece=piece, position=position, boardState=boardState)
         return jsonify({
             "result": True, 
+            "is_end": session.is_end,
+            "winner": session.winner
+        }), 400
+
+    try:
+        DropPieces(session=session, player=player, player_id=player_id, piece=piece, position=position, boardState=boardState)
+        return jsonify({
+            "result": True, 
+            "is_end": session.is_end,
+            "winner": session.winner
         }), 200
     except Exception as e:
-        return jsonify({"result": False, "error": str(e)}), 500
+        return jsonify({
+            "result": True, 
+            "is_end": session.is_end,
+            "winner": session.winner
+        }), 500
     

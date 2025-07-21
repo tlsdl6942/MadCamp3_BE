@@ -64,11 +64,14 @@ class SessionInfo:
     currPlayerId: int = 1
     startSignal: bool = False
 
+    last_move: Dict = field(default_factory=lambda: {"from": None, "to": None})
+    last_moved_piece:str
+
     # 방/게임 정보 추가
     is_end: bool = False
     roomName: str = ""
     roomPW: str = ""
-    winner: int = None  # 1 or 2
+    winner: int = 0  # 1 or 2
     
     def __post_init__(self):
         self.boardState.initialize()

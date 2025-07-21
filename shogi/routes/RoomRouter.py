@@ -10,7 +10,7 @@ def create_room():
     room_name = data["roomName"]
     game = data.get("game", "shogi")
 
-    result = create_new_room(user_id, room_name, game)
+    result = create_new_room(user_id=user_id, room_name=room_name, game=game)
     if result["result"]:
         return jsonify(result), 200
     else:
@@ -24,7 +24,7 @@ def enter_room():
     room_name = data["roomName"]
     room_pw = data["roomPW"]
 
-    result = join_room(user_id, room_name, room_pw)
+    result = join_room(user_id=user_id, roomName=room_name, roomPW=room_pw)
     if result["result"]:
         return jsonify(result), 200
     else:
@@ -37,7 +37,7 @@ def ready():
     session_id = data["session_id"]
     player_id = data["player_id"]
 
-    result = check_ready(session_id, player_id)
+    result = check_ready(session_id=session_id, player_id=player_id)
     if result["result"]:
         return jsonify(result), 200
     else:

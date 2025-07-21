@@ -18,10 +18,10 @@ def create_new_room(user_id: int, room_name: str, room_pw: str = "", game: str =
     if room_name in room_map:
         return {
         "result": True,
-        "session_id": None,
-        "player_id": None,
+        "session_id": 0,
+        "player_id": 0,
         "roomName": room_name,
-        "roomPW": None
+        "roomPW": 0
     }
     
     session_id = next(session_id_counter)
@@ -58,8 +58,8 @@ def join_room(user_id, roomName, roomPW):
     if roomName not in room_map:
         return {
         "result": True,
-        "session_id": None,
-        "player_id": None,
+        "session_id": 0,
+        "player_id": 0,
     }
 
     session_id = room_map[roomName]
@@ -68,15 +68,15 @@ def join_room(user_id, roomName, roomPW):
     if session.roomPW != roomPW:
         return {
         "result": True,
-        "session_id": None,
-        "player_id": None,
+        "session_id": 0,
+        "player_id": 0,
     }
 
     if len(session.players) >= 2:
         return {
         "result": True,
-        "session_id": None,
-        "player_id": None,
+        "session_id": 0,
+        "player_id": 0,
     }
 
     player_id = 2
@@ -121,11 +121,14 @@ def check_ready(session_id: int, player_id: int, timeout: int = 20):
         wait_time += poll_interval
 
     # 아직 시작 안 됐을 경우
-    delete_room(session_id=session_id)
-    return {
-        "result": True,
-        "startSignal": session.startSignal
-    }
+    delete_result = delete_room(session_id=session_id)
+    if (delete_result["success"]):
+        return {
+            "result": True,
+            "startSignal": session.startSignal
+        }
+    else:
+        raise ValueError("[RoomService] Failed to delete room")
 
 
 def delete_room(session_id: int):

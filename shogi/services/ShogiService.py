@@ -1,5 +1,6 @@
 from typing import List, Dict
-from shogi.models.ShogiModel import PieceType, BoardState, Piece, ShogiPlayer
+from shogi.models.ShogiModel import PieceType, BoardState, Piece, ShogiPlayer, SessionInfo
+from core.session_manager import game_sessions
 from .ShogiLogic import PIECE_DIRECTIONS
 
 # ✅ 이동 가능한 위치 반환 (드롭 or 말 이동)
@@ -17,7 +18,7 @@ def GetAvailableMoves(player_id: int, piece: str, position: Dict, boardState: Bo
         return get_available_drop_positions(player_id=player_id, piece=piece, boardState=boardState)
 
 # ✅ 실제 말 이동 처리
-def MovePieces(player:ShogiPlayer, player_id:int, piece:str, position:Dict, boardState:BoardState):
+def MovePieces(session:SessionInfo, player:ShogiPlayer, player_id:int, piece:str, position:Dict, boardState:BoardState):
     result = False
     capture = {
         "is_capture": False,
@@ -39,35 +40,36 @@ def MovePieces(player:ShogiPlayer, player_id:int, piece:str, position:Dict, boar
         # 상대 말을 잡는 경우
         capture["is_capture"] = True
         capture["piece"] = targetPiece.pieceType.ToString()
-        if (targetPiece.pieceType == PieceType.WANG): # 승리조건1: 왕 잡기
-            is_end = True
+        captureWang(session=session, player_id=player_id, captured=targetPiece.pieceType)
         
-        player.capturedPieces.append(targetPiece.pieceType) # capturedPieces 리스트 업데이트
+        player.capturedPieces.append(targetPiece) # capturedPieces 리스트 업데이트
 
-        # 보드판 업데이트
-            # to_pos
-        targetPiece.pieceType = PieceType(piece)
-        if (player_id==1 and to_pos[1]==3) or (player_id==2 and to_pos[1]==0): # 승리조건2(준비): 상대 진영 들어가기
-            targetPiece.stayedTurns = 1 # 카운트 시작
-        else:
-            targetPiece.stayedTurns = 0
-        targetPiece.owner = player_id
-            # from_pos
-        boardState.board[from_pos[0]][from_pos[1]].pieceType = PieceType.EMPTY
-        boardState.board[from_pos[0]][from_pos[1]].stayedTurns = 0
-        boardState.board[from_pos[0]][from_pos[1]].owner = 0
+    # 보드판 업데이트
+        # to_pos
+    targetPiece.pieceType = PieceType(piece)
+    targetPiece.stayedTurns = 0
+    targetPiece.owner = player_id
+        # from_pos
+    boardState.board[from_pos[0]][from_pos[1]].pieceType = PieceType.EMPTY
+    boardState.board[from_pos[0]][from_pos[1]].stayedTurns = 0
+    boardState.board[from_pos[0]][from_pos[1]].owner = 0
 
-        result = True
+    endTurn(session=session, position=position, movedPiece=piece)
+    if (session.is_end == False): # 왕 잡은게 먼저면 이미 끝
+        checkStayWin(session=session)
 
-        return {
-            "result": True,
-            "capture": capture,
-            "is_end": is_end
-        }
+    result = True
+
+    return {
+        "result": result,
+        "capture": capture,
+        "is_end": session.is_end,
+        "winner": session.winner
+    }
 
 
 # ✅ 드롭 처리
-def DropPieces(player:ShogiPlayer, player_id:int, piece:str, position:Dict, boardState:BoardState):
+def DropPieces(session:SessionInfo, player:ShogiPlayer, player_id:int, piece:str, position:Dict, boardState:BoardState):
     result = False
     matching = next(
         (p for p in player.capturedPieces if p.pieceType == PieceType(piece)),
@@ -93,10 +95,21 @@ def DropPieces(player:ShogiPlayer, player_id:int, piece:str, position:Dict, boar
     targetPiece.owner = player_id
 
     # capturedPieces 업데이트
-    player.capturedPieces.remove(PieceType(piece))
+    for captured in player.capturedPieces:
+        if captured.pieceType == PieceType(piece):
+            player.capturedPieces.remove(captured)
+            break  # ✅ 한 개만 제거하고 반복 종료
+
+    endTurn(session=session, position=position, movedPiece=piece)
+    if (session.is_end == False):
+        checkStayWin(session=session)
 
     result = True
-    return result
+    return {
+        "result": result,
+        "is_end": session.is_end,
+        "winner": session.winner
+    }
 
     
 # ✅ 말 이동 가능한 좌표 계산 - 상대 말이 있는 곳은 이동할 수 있어야 함.
@@ -112,12 +125,11 @@ def get_available_move_positions(player_id: int, piece: str, from_pos: List[int]
             result.append([nx, ny])
 
     # 보드 정보와 함께 실제 이동 가능한 좌표 계산
+    filtered = []
     for x, y in result:
-        if (boardState.board[x][y].pieceType != PieceType.EMPTY): # 만약 해당 좌표에 말이 놓여 있다면
-            if(boardState.board[x][y].owner == player_id):
-                result.remove([x, y])
-
-    return result
+        if(boardState.board[x][y].owner != player_id):
+            filtered.append([x, y])
+    return filtered
 
 def get_piece_direction(piece: str, player_id: int) -> List[tuple[int, int]]:
     directions = PIECE_DIRECTIONS.get(piece)
@@ -134,26 +146,64 @@ def get_available_drop_positions(player_id: int, piece: str, boardState: BoardSt
     result = []
     for x in range(3):
         for y in range(4):
-            if (player_id==1 and y==3) or (player_id==2 and y==0):
+            if (player_id==1 and y==3) or (player_id==2 and y==0): # 상대 진영에는 못놓음
                 continue
 
             targetPiece = boardState[x][y]
-            if targetPiece.pieceType == PieceType.EMPTY:
+            if targetPiece.pieceType == PieceType.EMPTY: # 비어있는 칸에만 Drop 가능
                 result.append([x, y])
 
     return result
 
-# ✅ 턴 종료 처리 (타이머 + 턴 교대)
-def waitTurn(session_id: int, player_id: int):
-    return True
 
-# ✅ 시간 초과 처리
-def CallTimeOut(session_id: int, player_id: int):
-    # 게임 종료 처리
-    # 승자 결정, reason: "timeout"
-    pass
+# 승리조건1 (상대 왕 잡기)
+def captureWang(session:SessionInfo, player_id:int, captured:PieceType):
+    if (captured == PieceType.WANG):
+        session.is_end = True
+        session.winner = player_id  
 
-# ✅ 승리 조건 검사 (예: 왕 제거 or 왕 도착)
-def check_win(boardState: BoardState, currentPlayerId: int) -> bool:
-    # 조건 만족 시 True
-    return False
+# 승리조건2 (내 왕이 상대 진영에서 1턴 버티기) 확인
+def checkStayWin(session:SessionInfo):
+    result = False
+    for x in range(3):  
+        piece = session.boardState.board[x][3]
+        if (piece.owner==1) and (piece.pieceType==PieceType.WANG) and (piece.stayedTurns == 1):
+            session.is_end = True
+            session.winner = 1
+
+    for x in range(3): 
+        piece = session.boardState.board[x][0]
+        if (piece.owner==2) and (piece.pieceType==PieceType.WANG) and (piece.stayedTurns == 1):
+            session.is_end = True
+            session.winner = 2
+
+    result = True
+
+    return {
+        "result": result,
+        "is_end": session.is_end,
+        "winner": session.winner
+    }
+
+            
+# ✅ 턴 종료 처리 (last_move 업데이트 & currPlayer 변경)
+def endTurn(session:SessionInfo, position:Dict, player_id:int, movedPiece:str):
+    session.last_move = {
+        "from": position["from"],
+        "to": position["to"]
+    }
+    session.last_moved_piece = movedPiece
+
+    # 상대 진영에 있는 왕의 stayedTurns 증가
+    for x in range(3):
+        for y in range(4):
+            piece = session.boardState.board[x][y]
+            if (piece.pieceType == PieceType.WANG) and (piece.owner != player_id):
+                if (piece.owner == 1 and y == 3) or (piece.owner == 2 and y == 0):
+                    piece.stayedTurns += 1
+                else:
+                    piece.stayedTurns = 0
+
+    # 다음 플레이어로 턴 넘기기
+    session.currPlayerId = 2 if session.currPlayerId==1 else 1
+
