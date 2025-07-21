@@ -42,6 +42,7 @@ def MovePieces(session:SessionInfo, player:ShogiPlayer, player_id:int, piece:str
         capture["piece"] = targetPiece.pieceType.value
         captureWang(session=session, player_id=player_id, captured=targetPiece.pieceType)
         
+        targetPiece.owner = player_id
         player.capturedPieces.append(targetPiece) # capturedPieces 리스트 업데이트
         print(f"[DEBUG /MovePieces] capturedPieces: {player.capturedPieces}")
 
@@ -72,13 +73,11 @@ def MovePieces(session:SessionInfo, player:ShogiPlayer, player_id:int, piece:str
 # ✅ 드롭 처리
 def DropPieces(session:SessionInfo, player:ShogiPlayer, player_id:int, piece:str, position:Dict, boardState:BoardState):
     result = False
-    matching = next(
-        (p for p in player.capturedPieces if p.pieceType == PieceType(piece)),
-        None
-    )
+    matching =(p for p in player.capturedPieces if p.pieceType == str_to_PT(piece))
+    
     if (matching is None): # Drop 하려는 말이 CapturedPieces에 없을 때
-        raise ValueError(f"[ShogiService] Invalid Piece: There is no '{piece}' in your captured pieces list.")
-
+        # print(f"[DEBUG /DropPieces] capturedPieces: {res}")
+        raise ValueError(f"[ShogiService] Invalid Piece: There is no {PieceType(piece)} in your captured pieces list.")
     if (position["from"] is not None): # Drop 요청인데 from이 None이 아닐 때
         raise ValueError(f"[ShogiService] Invalid Position: Position['from'] should be None. Received position['from'] = {position["from"]}")
 
@@ -208,3 +207,13 @@ def endTurn(session:SessionInfo, position:Dict, player_id:int, movedPiece:str):
     # 다음 플레이어로 턴 넘기기
     session.currPlayerId = 2 if session.currPlayerId==1 else 1
 
+
+def str_to_PT(value) -> PieceType | None:
+    if isinstance(value, PieceType):
+        return value
+    if isinstance(value, str):
+        try:
+            return PieceType(value)
+        except ValueError:
+            print(f"[ERROR] {value} is not a valid PieceType")
+    return None
