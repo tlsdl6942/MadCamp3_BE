@@ -3,7 +3,7 @@ import random
 import string
 
 from shogi.models.ShogiModel import SessionInfo, ShogiPlayer, BoardState
-from core.session_manager import game_sessions, room_map, start_game
+from core.session_manager import game_sessions, room_map
 import itertools
 
 
@@ -16,7 +16,13 @@ def generate_room_pw(length: int = 6) -> str:
 
 def create_new_room(user_id: int, room_name: str, room_pw: str = "", game: str = "shogi"):
     if room_name in room_map:
-        return {"result": False, "error": "Room name already exists"}
+        return {
+        "result": True,
+        "session_id": None,
+        "player_id": None,
+        "roomName": room_name,
+        "roomPW": None
+    }
     
     session_id = next(session_id_counter)
     room_pw = generate_room_pw()
@@ -38,7 +44,6 @@ def create_new_room(user_id: int, room_name: str, room_pw: str = "", game: str =
 
     game_sessions[session_id] = session
     room_map[room_name] = session_id
-    start_game[session_id] = False
 
     return {
         "result": True,
@@ -51,56 +56,96 @@ def create_new_room(user_id: int, room_name: str, room_pw: str = "", game: str =
 
 def join_room(user_id, roomName, roomPW):
     if roomName not in room_map:
-        return {"result": False, "error": "Room not found"}
+        return {
+        "result": True,
+        "session_id": None,
+        "player_id": None,
+    }
 
     session_id = room_map[roomName]
     session = game_sessions[session_id]
 
     if session.roomPW != roomPW:
-        return {"result": False, "error": "Incorrect room password"}
+        return {
+        "result": True,
+        "session_id": None,
+        "player_id": None,
+    }
 
     if len(session.players) >= 2:
-        return {"result": False, "error": "Room is full"}
+        return {
+        "result": True,
+        "session_id": None,
+        "player_id": None,
+    }
 
     player_id = 2
     player = ShogiPlayer(userId=user_id, userName=f"Player{user_id}", playerId=player_id)
     session.players[player_id] = player
 
-    # 게임 시작 신호 표시
-    start_game[session_id] = True
-
     return {
         "result": True,
         "session_id": session_id,
         "player_id": player_id,
-        "startSignal": True
     }
 
 
 def check_ready(session_id: int, player_id: int, timeout: int = 20):
     # 세션 존재 여부 확인
     if session_id not in game_sessions:  
-        return {"result": False, "error": "Invalid session ID"}
+        return {
+        "result": True,
+        "startSignal": session.startSignal
+    }
 
     # player_id가 1이 아닌 경우 요청 거부
     if player_id != 1:
-        return {"result": False, "error": "Only Player 1 should call /ready"}
+        return {
+        "result": True,
+        "startSignal": session.startSignal
+    }
     
     # Long Poll: timeout 동안 반복 확인
     wait_time = 0
     poll_interval = 1  # 1초마다 확인
 
+    session = game_sessions[session_id]
     while wait_time < timeout:
-        if start_game.get(session_id, False):
+        if (not session.startSignal) and (len(session.players) == 2):
+            session.startSignal = True
             return {
                 "result": True,
-                "startSignal": True
+                "startSignal": session.startSignal
             }
         time.sleep(poll_interval)
         wait_time += poll_interval
 
     # 아직 시작 안 됐을 경우
+    delete_room(session_id=session_id)
     return {
         "result": True,
-        "startSignal": False
+        "startSignal": session.startSignal
     }
+
+
+def delete_room(session_id: int):
+    # 해당 세션 존재 확인
+    if session_id not in game_sessions:
+        return {"result": True,
+                "success": False
+                }
+
+    # 세션 객체 가져오기
+    session = game_sessions[session_id]
+    room_name = session.roomName
+
+    # 세션 정보 삭제
+    del game_sessions[session_id]
+
+    # room_map에서 roomName 제거
+    if room_name in room_map:
+        del room_map[room_name]
+
+    return {"result": True,
+            "success": True
+            }

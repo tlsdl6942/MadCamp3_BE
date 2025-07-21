@@ -62,6 +62,7 @@ class SessionInfo:
     players: Dict[int, ShogiPlayer]  # playerId → ShogiPlayer
     boardState: BoardState = field(default_factory=BoardState)
     currPlayerId: int = 1
+    startSignal: bool = False
 
     # 방/게임 정보 추가
     is_end: bool = False

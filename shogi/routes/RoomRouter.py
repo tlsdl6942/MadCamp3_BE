@@ -1,9 +1,6 @@
 from flask import request, jsonify
 from shogi import shogi_bp
-from shogi.models.ShogiModel import SessionInfo, ShogiPlayer
-from core.session_manager import game_sessions, room_map, start_game
-from shogi.services.RoomService import create_new_room, join_room, check_ready
-import itertools
+from shogi.services.RoomService import create_new_room, join_room, check_ready, delete_room
 
 
 @shogi_bp.route("/create-room", methods=["POST"])
@@ -47,3 +44,13 @@ def ready():
         return jsonify(result), 400
     
 
+@shogi_bp.route("/delete-room", methods=["POST"])
+def delelt_room():
+    data = request.get_json()
+    session_id = data["session_id"]
+
+    result = delete_room(session_id)
+    if [result["result"]]:
+        return jsonify(result), 200
+    else:
+        return jsonify(result), 400

@@ -99,62 +99,6 @@ def DropPieces(player:ShogiPlayer, player_id:int, piece:str, position:Dict, boar
     return result
 
     
-# def MovePieces(player: ShogiPlayer, player_id: int, piece: str, position: Dict, boardState: BoardState) -> Dict:
-#     from_pos = position["from"]
-#     to_pos = position["to"]
-
-#     if (to_pos is None):
-#         raise ValueError(f"[ShogiService] Invalid request: 'to' should NOT be null for available-moves. Received to={to_pos}")
-
-#     if from_pos is None:
-#         # 드롭 처리
-#         return UpdateBoard(player=player, player_id=player_id, piece=piece, from_pos=from_pos, to_pos=to_pos, boardState=boardState)
-#     else:
-#         # 말 이동 처리
-#         if 
-#         # 말 이동 분기 처리, 
-#         # 이동 정보 업데이트(말판, 먹은 말 리스트), 
-#         # 게임 종료 여부 확인 및 처리, 
-#         # 타이머 중지, 
-#         # 턴 종료
-
-# # ✅ 게임판 상태 및 플레이어 상태 업데이트 - 순수하게 플레이어 의도대로 해당 말만 이동, drop시 capturedPieces에서 제외
-# def UpdateBoard(player: ShogiPlayer, player_id:int, piece: str, from_pos: List[int], to_pos: List[int], boardState: BoardState) -> bool:
-#     if from_pos is None: # drop
-#         matching = next((p for p in player.capturedPieces if p.pieceType.value == piece), None)
-#         if not matching:
-#             raise ValueError(f"[ShogiService] Invalid request: There is no matching piece with capturedPieces. Received piece={piece}")
-#         player.capturedPieces.remove(matching) # capturedPieces에서 drop할 piece 삭제
-
-#     f_x, f_y = from_pos if from_pos else (-1,-1) # drop일 경우 from_pos 사용 안함
-#     t_x, t_y = to_pos
-#     t_piece = boardState.board[t_x][t_y]
-#     if (t_piece.pieceType==PieceType.EMPTY):
-#         raise ValueError(f"[ShogiService] Invalid request: There is a piece already. You can move pieces to only empty position. Receiced to_pos={to_pos}")
-    
-#     if from_pos is not None:
-#         boardState.board[f_x][f_y] = Piece(
-#             pieceType = PieceType.EMPTY,
-#             stayedTurns = 0,
-#             owner = 0)
-
-#     t_piece = Piece(
-#         pieceType=PieceType(piece),  # str → Enum
-#         stayedTurns=1 if ((player_id == 1 and t_y == 3) or (player_id == 2 and t_y == 0)) else 0,
-#         owner=player_id
-#     )
-
-#     return True
-
-### dropUpdate랑 moveUpdate를 따로 만드는게 나을지도..
-
-
-    # 보드 상태 업데이트
-    # 캡처 시 dropState에 추가
-    # stayedTurns 증가 등
-
-    return True  # or False if illegal
-
 # ✅ 말 이동 가능한 좌표 계산 - 상대 말이 있는 곳은 이동할 수 있어야 함.
 def get_available_move_positions(player_id: int, piece: str, from_pos: List[int], boardState: BoardState) -> List[List[int]]:
     directions = get_piece_direction(piece=piece, player_id=player_id)
@@ -200,39 +144,8 @@ def get_available_drop_positions(player_id: int, piece: str, boardState: BoardSt
     return result
 
 # ✅ 턴 종료 처리 (타이머 + 턴 교대)
-def endTurn(session_id: int, player_id: int):
-    CancelTimer(session_id, player_id)
-    # 턴 교대
-    # StartTimer(session_id, next_player_id)
+def waitTurn(session_id: int, player_id: int):
     return True
-
-# ✅ 말 이동 처리
-def handle_move(player: ShogiPlayer, piece: str, from_pos: List[int], to_pos: List[int], boardState: BoardState) -> Dict:
-    # 캡처 여부 판단
-    # 승리 조건 판단
-    return {
-        "capture": {"is_capture": True, "piece": "Wang"},
-        "is_end": False
-    }
-
-# ✅ 드롭 처리
-def handle_drop(player: ShogiPlayer, piece: str, to_pos: List[int], boardState: BoardState) -> Dict:
-    # 드롭 위치 검증
-    # 캡처는 발생하지 않음
-    return {
-        "capture": {"is_capture": False, "piece": None},
-        "is_end": False
-    }
-
-# ✅ 타이머 시작
-def StartTimer(session_id: int, player_id: int):
-    # 90초 타이머 시작 → 비동기 처리 필요 (쓰레드 or asyncio)
-    pass
-
-# ✅ 타이머 취소
-def CancelTimer(session_id: int, player_id: int):
-    # 현재 진행 중인 타이머 중단
-    pass
 
 # ✅ 시간 초과 처리
 def CallTimeOut(session_id: int, player_id: int):
@@ -244,8 +157,3 @@ def CallTimeOut(session_id: int, player_id: int):
 def check_win(boardState: BoardState, currentPlayerId: int) -> bool:
     # 조건 만족 시 True
     return False
-
-# (선택) playerId 추출 유틸
-def get_player_id(player: ShogiPlayer, boardState: BoardState) -> int:
-    # 추후 session에서 player_id와 userId 매핑해주는 로직 있으면 그걸 쓰세요
-    return 1 if player.userId % 2 == 1 else 2

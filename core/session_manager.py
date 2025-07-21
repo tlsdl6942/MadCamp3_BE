@@ -5,4 +5,4 @@ from shogi.models.ShogiModel import SessionInfo as ShogiSession
 # 앞으로 Shogi, Poker, Othello 등의 게임 세션을 다 여기에 저장
 game_sessions: Dict[int, Union[ShogiSession]] = {}  # session_id -> SessionInfo
 room_map: Dict[str, int] = {}  # roomName -> session_id
-start_game: Dict[int, bool] = {}  # session_id -> bool
+# start_game: Dict[int, bool] = {}  # session_id -> bool
