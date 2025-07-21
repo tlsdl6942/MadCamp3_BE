@@ -43,6 +43,7 @@ def MovePieces(session:SessionInfo, player:ShogiPlayer, player_id:int, piece:str
         captureWang(session=session, player_id=player_id, captured=targetPiece.pieceType)
         
         player.capturedPieces.append(targetPiece) # capturedPieces 리스트 업데이트
+        print(f"[DEBUG /MovePieces] capturedPieces: {player.capturedPieces}")
 
     # 보드판 업데이트
         # to_pos
