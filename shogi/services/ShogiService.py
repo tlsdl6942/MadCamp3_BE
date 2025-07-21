@@ -39,7 +39,7 @@ def MovePieces(session:SessionInfo, player:ShogiPlayer, player_id:int, piece:str
         
         # 상대 말을 잡는 경우
         capture["is_capture"] = True
-        capture["piece"] = targetPiece.pieceType.ToString()
+        capture["piece"] = targetPiece.pieceType.value
         captureWang(session=session, player_id=player_id, captured=targetPiece.pieceType)
         
         player.capturedPieces.append(targetPiece) # capturedPieces 리스트 업데이트
