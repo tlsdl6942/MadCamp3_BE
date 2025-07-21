@@ -82,6 +82,8 @@ def move():
             "winner": session.winner
         }), 200
     except Exception as e:
+        print(f"[DEBUG /move] request: {data}")
+        print(f"[DEBUG /move] response: {res}")
         return jsonify({
             "result": True, 
             "capture": None,
