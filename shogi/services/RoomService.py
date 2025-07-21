@@ -39,7 +39,7 @@ def create_new_room(user_id: int, room_name: str, room_pw: str = "", game: str =
         is_end=False,
         roomName=room_name,
         roomPW=room_pw,
-        winner=None
+        winner=0
     )
 
     game_sessions[session_id] = session
