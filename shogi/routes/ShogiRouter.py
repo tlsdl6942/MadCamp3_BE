@@ -118,6 +118,8 @@ def available_drop():
         return jsonify({"result": True, "moves": moves}), 200
 
     except Exception as e:
+        print(f"[DEBUG /available-move] request: {data}")
+        print(f"[DEBUG /available-move] response: {moves}")
         return jsonify({"result": True, "moves": None}), 500
     
 
@@ -149,13 +151,15 @@ def drop():
         }), 400
 
     try:
-        DropPieces(session=session, player=player, player_id=player_id, piece=piece, position=position, boardState=boardState)
+        res = DropPieces(session=session, player=player, player_id=player_id, piece=piece, position=position, boardState=boardState)
         return jsonify({
             "result": True, 
             "is_end": session.is_end,
             "winner": session.winner
         }), 200
     except Exception as e:
+        print(f"[DEBUG /move] request: {data}")
+        print(f"[DEBUG /move] response: {res}")
         return jsonify({
             "result": True, 
             "is_end": session.is_end,
