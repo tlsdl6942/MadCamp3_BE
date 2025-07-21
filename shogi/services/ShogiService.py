@@ -83,7 +83,7 @@ def DropPieces(session:SessionInfo, player:ShogiPlayer, player_id:int, piece:str
 
     to_x, to_y = position["to"]
     # 놓으려고 하는 위치가 잘못됐을 때
-    if (player_id==1 and to_y[1]==3) or (player_id==2 and to_y[1]==0): # 상대 진영에 놓으려 하는 경우
+    if (player_id==1 and to_y==3) or (player_id==2 and to_y==0): # 상대 진영에 놓으려 하는 경우
         raise ValueError(f"[ShogiService] Invalid Position: You cannot drop a piece in the opponent's territory.")
     if (boardState.board[to_x][to_y].pieceType != PieceType.EMPTY): # 말이 있는 곳에 놓으려 하는 경우
         raise ValueError(f"[ShogiService] Invalid Position: That position is already occupied. Received position['to']: {position["to"]}")
