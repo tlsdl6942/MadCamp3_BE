@@ -149,7 +149,7 @@ def get_available_drop_positions(player_id: int, piece: str, boardState: BoardSt
             if (player_id==1 and y==3) or (player_id==2 and y==0): # 상대 진영에는 못놓음
                 continue
 
-            targetPiece = boardState[x][y]
+            targetPiece = boardState.board[x][y]
             if targetPiece.pieceType == PieceType.EMPTY: # 비어있는 칸에만 Drop 가능
                 result.append([x, y])
 
