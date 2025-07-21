@@ -60,12 +60,12 @@ class BoardState:
 class SessionInfo:
     sessionId: int
     players: Dict[int, ShogiPlayer]  # playerId → ShogiPlayer
+    last_moved_piece:str = None
     boardState: BoardState = field(default_factory=BoardState)
     currPlayerId: int = 1
     startSignal: bool = False
 
     last_move: Dict = field(default_factory=lambda: {"from": None, "to": None})
-    last_moved_piece:str
 
     # 방/게임 정보 추가
     is_end: bool = False

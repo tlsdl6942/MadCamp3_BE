@@ -3,7 +3,7 @@ import random
 import string
 
 from shogi.models.ShogiModel import SessionInfo, ShogiPlayer, BoardState
-from core.session_manager import game_sessions, room_map
+from core.session_manager import game_sessions, room_map, user_map
 import itertools
 
 
@@ -27,7 +27,7 @@ def create_new_room(user_id: int, room_name: str, room_pw: str = "", game: str =
     session_id = next(session_id_counter)
     room_pw = generate_room_pw()
 
-    player = ShogiPlayer(userId=user_id, userName=f"Player{user_id}", playerId=1) # username 설정 확인
+    player = ShogiPlayer(userId=user_id, userName=user_map[user_id], playerId=1) # username 설정 확인
     board = BoardState()
     board.initialize()
 
@@ -80,7 +80,7 @@ def join_room(user_id, roomName, roomPW):
     }
 
     player_id = 2
-    player = ShogiPlayer(userId=user_id, userName=f"Player{user_id}", playerId=player_id)
+    player = ShogiPlayer(userId=user_id, userName=user_map[user_id], playerId=player_id)
     session.players[player_id] = player
 
     return {
