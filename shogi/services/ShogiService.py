@@ -54,7 +54,7 @@ def MovePieces(session:SessionInfo, player:ShogiPlayer, player_id:int, piece:str
     boardState.board[from_pos[0]][from_pos[1]].stayedTurns = 0
     boardState.board[from_pos[0]][from_pos[1]].owner = 0
 
-    endTurn(session=session, position=position, movedPiece=piece)
+    endTurn(session=session, position=position, player_id=player_id, movedPiece=piece)
     if (session.is_end == False): # 왕 잡은게 먼저면 이미 끝
         checkStayWin(session=session)
 
@@ -100,7 +100,7 @@ def DropPieces(session:SessionInfo, player:ShogiPlayer, player_id:int, piece:str
             player.capturedPieces.remove(captured)
             break  # ✅ 한 개만 제거하고 반복 종료
 
-    endTurn(session=session, position=position, movedPiece=piece)
+    endTurn(session=session, position=position, player_id=player_id, movedPiece=piece)
     if (session.is_end == False):
         checkStayWin(session=session)
 
