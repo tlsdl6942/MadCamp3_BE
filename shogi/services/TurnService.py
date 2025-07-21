@@ -1,7 +1,7 @@
 # TurnService.py
 from core.session_manager import game_sessions
-from models.ShogiModel import PieceType, BoardState, Piece, ShogiPlayer, SessionInfo
-from services.ShogiService import checkStayWin
+# from models.ShogiModel import PieceType, BoardState, Piece, ShogiPlayer, SessionInfo
+from shogi.services.ShogiService import checkStayWin
 
 def wait(session_id: int, player_id: int):
     session = game_sessions.get(session_id)
