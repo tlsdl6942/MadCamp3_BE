@@ -15,6 +15,7 @@ def wait_turn_route():
         return jsonify({
             "result": True,
             "turn": result["turn"],
+            "op_piece": result["op_piece"],
             "op_position": result["op_position"],
             "is_end": result["is_end"],
             "winner": result["winner"]
