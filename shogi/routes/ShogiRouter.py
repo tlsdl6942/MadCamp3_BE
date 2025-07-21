@@ -40,6 +40,8 @@ def avaiable_moves():
         moves = GetAvailableMoves(player_id, piece, position, boardState)
         return jsonify({"result": True, "moves": moves}), 200
     except Exception as e:
+        print(f"[DEBUG /available-move] request: {data}")
+        print(f"[DEBUG /available-move] response: {moves}")
         return jsonify({"result": True, "moves": None}), 500
     
 
